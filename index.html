@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>青春恋爱之游竣才不会被攻略</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23202738'/%3E%3Ccircle cx='20' cy='40' r='10' fill='%23f2a05c'/%3E%3Ccircle cx='44' cy='24' r='10' fill='%23f2a05c' opacity='.75'/%3E%3Ccircle cx='32' cy='16' r='6' fill='%23e8e2d4'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --ink:#202738; --ink-2:#141823; --paper:#f3ead9; --paper-dim:#d8cdb8;
+    --accent:#e8572c; --accent-2:#f2a05c; --blue:#8fb7e8; --muted:#9aa3b5;
+    --panel:rgba(18,21,32,.78); --panel-line:rgba(243,234,217,.18);
+    --serif:"Noto Serif SC","Songti SC","STSong","SimSun",serif;
+    --sans:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;overflow:hidden}
+  body{font-family:var(--sans);color:var(--paper);background:#0d0f16;user-select:none}
+  button{font-family:inherit;border:none;background:none;color:inherit;cursor:pointer}
+  .view{position:fixed;inset:0;display:none}
+  .view.active{display:block}
+
+  /* ===== 背景层（游戏内跨场景淡入淡出） ===== */
+  #bgLay{position:fixed;inset:0;z-index:0}
+  .bglayer{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transition:opacity .9s ease}
+  .bglayer.on{opacity:1}
+  #bgLay::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 90% at 50% 30%,transparent 55%,rgba(10,12,20,.55) 100%)}
+
+  /* ===== 标题页 ===== */
+  #viewTitle{background:linear-gradient(180deg,#13101a 0%,#241826 45%,#3c2326 100%)}
+  #viewTitle .tbg{position:absolute;inset:0;background:url(assets/bg-rooftop.png) center 22%/cover;opacity:.5}
+  #viewTitle .tbg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(13,15,22,.55),rgba(13,15,22,.15) 40%,rgba(13,15,22,.92) 100%)}
+  .title-wrap{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px}
+  .title-kicker{font-size:13px;letter-spacing:.5em;color:var(--accent-2);margin-bottom:18px;font-weight:500}
+  .title-main{font-family:var(--serif);font-weight:900;font-size:clamp(46px,9vw,84px);line-height:1.15;letter-spacing:.12em;
+    text-shadow:0 4px 30px rgba(0,0,0,.5)}
+  .title-sub{margin-top:16px;font-size:clamp(13px,2.4vw,17px);color:var(--paper-dim);letter-spacing:.18em}
+  .title-line{width:min(220px,46%);height:1px;margin:26px auto;background:linear-gradient(90deg,transparent,var(--accent-2),transparent)}
+  .title-menu{display:flex;flex-direction:column;gap:12px;margin-top:8px;width:min(280px,80%)}
+  .tbtn{font-family:var(--serif);font-size:17px;letter-spacing:.3em;padding:13px 0;border:1px solid var(--panel-line);
+    border-radius:4px;color:var(--paper);background:rgba(20,24,35,.45);backdrop-filter:blur(4px);
+    transition:all .25s ease}
+  .tbtn:hover,.tbtn:focus-visible{background:rgba(232,87,44,.82);border-color:var(--accent);color:#fff;outline:none}
+  .tbtn.ghost{opacity:.85}
+  .tbtn.hidden{display:none}
+  .title-foot{margin-top:34px;font-size:12px;color:var(--muted);letter-spacing:.08em}
+
+  /* ===== 剧情页 ===== */
+  #gameLay{position:fixed;inset:0;z-index:1;display:none;flex-direction:column}
+  #gameLay.active{display:flex}
+  #topBar{position:relative;z-index:20;display:flex;align-items:center;justify-content:space-between;
+    padding:10px 14px;background:linear-gradient(180deg,rgba(13,15,22,.62),transparent)}
+  #topBar .tb-item{font-size:12px;color:var(--paper-dim);letter-spacing:.06em;display:flex;gap:10px;align-items:center}
+  #topBar button{font-size:12px;color:var(--paper-dim);letter-spacing:.08em;padding:4px 8px;border:1px solid transparent;border-radius:3px;transition:.2s}
+  #topBar button:hover{color:var(--paper);border-color:var(--panel-line)}
+  #affDisp{font-family:var(--serif);color:var(--accent-2);letter-spacing:.05em}
+  #affDisp.hide{visibility:hidden}
+
+  /* 角色立绘（对话面板左侧） */
+  #portrait{position:absolute;left:clamp(6px,2.5vw,26px);bottom:clamp(196px,26vh,238px);z-index:5;width:clamp(96px,15vw,168px);
+    pointer-events:none;filter:drop-shadow(0 8px 24px rgba(0,0,0,.45));opacity:0;transform:translateY(14px);transition:opacity .5s ease,transform .5s ease}
+  #portrait.on{opacity:1;transform:translateY(0)}
+  #portrait img{width:100%;border-radius:14px;display:block;aspect-ratio:3/4;object-fit:cover}
+  #portrait .pname{position:absolute;left:8px;bottom:8px;font-family:var(--serif);font-size:15px;letter-spacing:.2em;
+    padding:3px 10px;border-radius:3px;background:rgba(13,15,22,.66);color:var(--paper);backdrop-filter:blur(3px)}
+
+  /* 章节卡 */
+  #chapterCard{position:absolute;inset:0;z-index:40;display:none;align-items:center;justify-content:center;
+    background:rgba(10,12,18,.72);backdrop-filter:blur(6px);text-align:center}
+  #chapterCard.show{display:flex}
+  #chapterCard .ch-tag{font-size:13px;letter-spacing:.55em;color:var(--accent-2);margin-bottom:14px}
+  #chapterCard .ch-title{font-family:var(--serif);font-weight:900;font-size:clamp(28px,6vw,52px);letter-spacing:.14em;color:var(--paper)}
+  #chapterCard .ch-hint{margin-top:20px;font-size:12px;color:var(--muted);letter-spacing:.2em}
+
+  /* 对话面板 */
+  #dialog{position:absolute;left:0;right:0;bottom:0;z-index:30;padding:clamp(10px,2vw,20px) clamp(12px,4vw,40px) calc(14px + env(safe-area-inset-bottom));
+    background:var(--panel);border-top:1px solid var(--panel-line);backdrop-filter:blur(12px);
+    box-shadow:0 -10px 40px rgba(0,0,0,.35)}
+  #namePlate{font-family:var(--serif);font-size:clamp(15px,2.4vw,19px);font-weight:700;letter-spacing:.14em;
+    display:inline-block;padding:3px 14px 4px;border-radius:3px;margin-bottom:10px;color:var(--paper);
+    background:rgba(232,87,44,.85)}
+  #namePlate.narr{background:rgba(154,163,181,.35);color:var(--paper-dim)}
+  #textArea{min-height:clamp(88px,16vh,120px);font-size:clamp(15px,2.35vw,19px);line-height:1.85;letter-spacing:.03em;
+    color:var(--paper);font-family:var(--sans);max-width:880px}
+  #textArea .caret{display:inline-block;width:2px;height:1.05em;background:var(--accent-2);vertical-align:-0.15em;margin-left:2px;animation:blink .8s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+  #choices{margin-top:14px;display:flex;flex-direction:column;gap:10px;max-width:880px}
+  .cbtn{text-align:left;font-size:clamp(14px,2.2vw,17px);line-height:1.6;padding:12px 18px;border:1px solid var(--panel-line);
+    border-radius:4px;background:rgba(243,234,217,.05);color:var(--paper);transition:all .22s ease;font-family:var(--sans)}
+  .cbtn:hover,.cbtn:focus-visible{background:rgba(232,87,44,.75);border-color:var(--accent);transform:translateX(4px);outline:none}
+  #advHint{position:absolute;right:clamp(14px,4vw,36px);bottom:calc(10px + env(safe-area-inset-bottom));font-size:11px;color:var(--muted);
+    letter-spacing:.18em;opacity:.7}
+
+  /* ===== 结局页 ===== */
+  #viewEnd{background:#0d0f16}
+  #viewEnd .ebg{position:absolute;inset:0;background-size:cover;background-position:center}
+  #viewEnd .ebg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(13,15,22,.25),rgba(13,15,22,.86))}
+  .end-wrap{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:28px;overflow-y:auto}
+  .end-rank{font-size:13px;letter-spacing:.5em;color:var(--accent-2);margin-bottom:16px;font-weight:500}
+  .end-rank.rank-he{color:#f2c94c}.end-rank.rank-ne{color:var(--paper-dim)}.end-rank.rank-be{color:#8fb7e8}.end-rank.rank-hidden{color:#d98fe8}
+  .end-title{font-family:var(--serif);font-weight:900;font-size:clamp(34px,7vw,60px);letter-spacing:.12em;text-shadow:0 4px 28px rgba(0,0,0,.55)}
+  .end-text{margin-top:26px;max-width:640px;font-size:clamp(14px,2.3vw,17px);line-height:2;color:var(--paper);font-family:var(--serif)}
+  .end-new{display:inline-block;margin-top:16px;font-size:12px;letter-spacing:.3em;color:#0d0f16;background:var(--accent-2);
+    padding:4px 14px;border-radius:3px;animation:pulse 1.6s ease infinite}
+  @keyframes pulse{50%{transform:scale(1.06)}}
+  .end-menu{margin-top:34px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+  .ebtn{font-family:var(--serif);font-size:14px;letter-spacing:.22em;padding:11px 22px;border:1px solid var(--panel-line);
+    border-radius:4px;background:rgba(20,24,35,.5);transition:.22s}
+  .ebtn:hover{background:rgba(232,87,44,.82);border-color:var(--accent)}
+
+  /* ===== 结局图鉴 ===== */
+  #viewGallery{background:linear-gradient(180deg,#13101a,#1c1a28);overflow-y:auto}
+  .g-wrap{position:relative;z-index:2;max-width:980px;margin:0 auto;padding:clamp(24px,5vw,52px) 20px 60px}
+  .g-head{font-family:var(--serif);font-weight:900;font-size:clamp(26px,5vw,40px);letter-spacing:.2em;text-align:center;color:var(--paper)}
+  .g-sub{text-align:center;margin-top:12px;font-size:13px;color:var(--muted);letter-spacing:.2em}
+  .g-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;margin-top:34px}
+  .g-card{border:1px solid var(--panel-line);border-radius:6px;padding:22px 20px;background:rgba(243,234,217,.04);
+    transition:all .25s ease;position:relative;min-height:150px;display:flex;flex-direction:column;justify-content:center;text-align:center}
+  .g-card:hover{background:rgba(232,87,44,.12);border-color:var(--accent)}
+  .g-card.locked{opacity:.4}
+  .g-rank{font-size:11px;letter-spacing:.4em;color:var(--accent-2);margin-bottom:10px}
+  .g-title{font-family:var(--serif);font-weight:700;font-size:20px;letter-spacing:.16em;color:var(--paper)}
+  .g-desc{margin-top:10px;font-size:12.5px;line-height:1.7;color:var(--paper-dim)}
+  .g-lock{margin-top:12px;font-size:12px;letter-spacing:.3em;color:var(--muted)}
+  .g-back{display:block;margin:30px auto 0;font-size:13px;letter-spacing:.25em;color:var(--paper-dim);padding:10px 26px;
+    border:1px solid var(--panel-line);border-radius:4px;transition:.2s}
+  .g-back:hover{color:var(--paper);border-color:var(--accent)}
+
+  /* ===== 关于页 ===== */
+  #viewAbout{background:linear-gradient(180deg,#13101a,#1a1f2e);overflow-y:auto}
+  .a-wrap{position:relative;z-index:2;max-width:640px;margin:0 auto;padding:clamp(24px,5vw,52px) 22px 60px}
+  .a-head{font-family:var(--serif);font-weight:900;font-size:clamp(24px,5vw,34px);letter-spacing:.18em;color:var(--paper)}
+  .a-block{margin-top:28px}
+  .a-h{font-family:var(--serif);font-size:15px;letter-spacing:.22em;color:var(--accent-2);margin-bottom:12px}
+  .a-p{font-size:14px;line-height:2;color:var(--paper-dim)}
+  .a-p b{color:var(--paper);font-weight:500}
+  .a-menu{margin-top:14px;display:flex;gap:10px}
+  .a-back{font-size:13px;letter-spacing:.25em;color:var(--paper-dim);padding:10px 24px;border:1px solid var(--panel-line);border-radius:4px;transition:.2s}
+  .a-back:hover{color:var(--paper);border-color:var(--accent)}
+
+  /* ===== 设置弹层 ===== */
+  #settingsModal{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;background:rgba(8,10,15,.66);backdrop-filter:blur(5px)}
+  #settingsModal.show{display:flex}
+  .s-panel{width:min(420px,90%);background:var(--ink);border:1px solid var(--panel-line);border-radius:8px;padding:26px 24px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .s-head{font-family:var(--serif);font-size:17px;letter-spacing:.25em;color:var(--paper);text-align:center;margin-bottom:20px}
+  .s-row{display:flex;align-items:center;justify-content:space-between;padding:13px 2px;border-bottom:1px solid rgba(243,234,217,.08);font-size:14px;color:var(--paper-dim)}
+  .s-row:last-child{border-bottom:none}
+  .seg{display:flex;gap:6px}
+  .seg button{font-size:12px;padding:6px 12px;border:1px solid var(--panel-line);border-radius:3px;color:var(--paper-dim);transition:.18s}
+  .seg button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .s-close{display:block;margin:18px auto 0;font-size:13px;letter-spacing:.3em;color:var(--paper-dim);padding:9px 30px;border:1px solid var(--panel-line);border-radius:4px;transition:.2s}
+  .s-close:hover{color:var(--paper);border-color:var(--accent)}
+
+  @media (max-width:720px){
+    #portrait{width:clamp(84px,24vw,118px);bottom:calc(26vh - 10px);left:6px}
+    #portrait .pname{font-size:12px;left:5px;bottom:5px}
+    #dialog{padding-left:10px;padding-right:10px}
+    #textArea{min-height:96px}
+    #advHint{display:none}
+    #portrait{bottom:calc(30vh - 14px)}
+  }
+  @media (max-width:480px){
+    #portrait{width:clamp(74px,26vw,96px);bottom:calc(32vh - 12px)}
+    #topBar{padding:8px 10px}
+    #topBar .tb-item{font-size:11px;gap:6px}
+    #topBar button{font-size:11px;padding:3px 5px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== 标题页 ===== -->
+<div class="view" id="viewTitle">
+  <div class="tbg"></div>
+  <div class="title-wrap">
+    <div class="title-kicker">QINGCHUN LIANAI STORY</div>
+    <h1 class="title-main">青春恋爱之游竣</h1>
+    <div class="title-sub">才不会被攻略！· 游竣 × 小龙 · 高中校园恋爱物语</div>
+    <div class="title-line"></div>
+    <div class="title-menu">
+      <button class="tbtn" id="btnNew">开始新的夏天</button>
+      <button class="tbtn ghost" id="btnContinue">继续夏天</button>
+      <button class="tbtn ghost" id="btnGallery">结局图鉴</button>
+      <button class="tbtn ghost" id="btnAbout">关于本作</button>
+    </div>
+    <div class="title-foot">多分支 · 6 结局（1好5坏）· 本地自动存档</div>
+  </div>
+</div>
+
+<!-- ===== 剧情页 ===== -->
+<div id="gameLay">
+  <div id="bgLay"><div class="bglayer" id="bgNow"></div><div class="bglayer" id="bgNext"></div></div>
+  <div id="portrait"><img id="portraitImg" alt=""><span class="pname" id="portraitName"></span></div>
+  <div id="chapterCard"><div><div class="ch-tag" id="chTag"></div><div class="ch-title" id="chTitle"></div><div class="ch-hint">点击继续</div></div></div>
+  <div id="topBar">
+    <div class="tb-item"><button id="btnTitle">标题</button><button id="btnSettings">设置</button></div>
+    <div class="tb-item"><span id="affDisp" class="hide">好感</span></div>
+  </div>
+  <div id="dialog">
+    <div id="namePlate">旁白</div>
+    <div id="textArea"></div>
+    <div id="choices"></div>
+    <div id="advHint">▼ 点击继续</div>
+  </div>
+</div>
+
+<!-- ===== 结局页 ===== -->
+<div class="view" id="viewEnd">
+  <div class="ebg" id="endBg"></div>
+  <div class="end-wrap">
+    <div class="end-rank" id="endRank"></div>
+    <div class="end-title" id="endTitle"></div>
+    <div class="end-new" id="endNew">NEW ENDING</div>
+    <div class="end-text" id="endText"></div>
+    <div class="end-menu">
+      <button class="ebtn" id="endGallery">结局图鉴</button>
+      <button class="ebtn" id="endTitle2">回到标题</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 结局图鉴 ===== -->
+<div class="view" id="viewGallery">
+  <div class="g-wrap">
+    <div class="g-head">结局图鉴</div>
+    <div class="g-sub" id="galleryCount"></div>
+    <div class="g-grid" id="galleryGrid"></div>
+    <button class="g-back" id="galleryBack">← 返回标题</button>
+  </div>
+</div>
+
+<!-- ===== 关于 ===== -->
+<div class="view" id="viewAbout">
+  <div class="a-wrap">
+    <div class="a-head">关于本作</div>
+    <div class="a-block">
+      <div class="a-h">操作</div>
+      <p class="a-p"><b>点击画面 / 按空格键</b>推进对话，出现选项时选择即可。<b>好感度</b>与<b>关键约定</b>会影响最终结局，可随时在设置中开启好感显示。</p>
+    </div>
+    <div class="a-block">
+      <div class="a-h">存档</div>
+      <p class="a-p">进度<b>自动保存</b>在本地浏览器，无需手动操作。结局图鉴会记录你解锁的每一个结局。</p>
+    </div>
+    <div class="a-block">
+      <div class="a-h">制作</div>
+      <p class="a-p">《青春恋爱之游竣才不会被攻略》——高中校园恋爱物语。傲娇嘴硬的败犬游竣，与外表冷淡内心温热的小龙，从同桌到并肩，走过被老师针对的窘迫、吃醋、磨合与修罗场。<br>全部 6 个结局——1 个幸福，5 个遗憾。分手、背叛、追去其他人、错过、决裂……愿你避开所有错误选项，守住那个夏天。</p>
+    </div>
+    <div class="a-menu"><button class="a-back" id="aboutBack">← 返回标题</button></div>
+  </div>
+</div>
+
+<!-- ===== 设置弹层 ===== -->
+<div id="settingsModal">
+  <div class="s-panel">
+    <div class="s-head">设置</div>
+    <div class="s-row"><span>文字速度</span>
+      <div class="seg" id="segSpeed">
+        <button data-v="46">慢</button><button data-v="28" class="on">正常</button><button data-v="10">快</button>
+      </div>
+    </div>
+    <div class="s-row"><span>音效</span>
+      <div class="seg" id="segSfx">
+        <button data-v="1" class="on">开</button><button data-v="0">关</button>
+      </div>
+    </div>
+    <div class="s-row"><span>显示好感度</span>
+      <div class="seg" id="segAff">
+        <button data-v="1">开</button><button data-v="0" class="on">关</button>
+      </div>
+    </div>
+    <button class="s-close" id="settingsClose">关闭</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ================= 剧情数据 ================= */
+const SCENES = [
+{id:"p01", bg:"classroom", speaker:null, text:"高一开学第一天，阳光好得不像话。我叫游竣，成绩中不溜秋，性格嘛——用班里女生的话说，叫“嘴硬”。我绝不承认。", next:"p02"},
+{id:"p02", bg:"classroom", speaker:null, text:"班主任按成绩排座位。我抱着书包走进教室，看见自己的名字贴在一张靠窗的桌子角上，旁边已经坐了一个趴着补觉的男生。", next:"p03"},
+{id:"p03", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"……（他抬起头，冷淡地看了我一眼）你坐这？", next:"p04"},
+{id:"p04", bg:"classroom", speaker:"游竣", sprite:"youjun", text:"怎么，我不能坐？座位又没写你名字。", next:"p05"},
+{id:"p05", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"写了。不过算了。", next:"p06"},
+{id:"p06", bg:"classroom", speaker:null, text:"他指了指桌角——上面确实贴着“小龙”两个字。我，坐错位置了。我脸一热，抓起书包就想换。", next:"p07"},
+{id:"p07", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"不用换。你坐吧，我懒得挪。", next:"p08"},
+{id:"p08", bg:"classroom", speaker:"游竣", sprite:"youjun", text:"……你少装好人。这人情我记下了，回头还你。", next:"p09"},
+{id:"p09", bg:"classroom", speaker:null, text:"这就是我和小龙的第一次对话。后来我常常想，如果那天我坚持换了座位，这个夏天会不会不一样。——可惜人生没有如果，只有Apex。", next:"p10"},
+{id:"p10", chapter:"序章 · 开学第一天的败犬", next:"p11"},
+{id:"p11", bg:"classroom", speaker:null, text:"很快我发现，小龙这人看着冷，其实挺好相处——只要别在他打游戏的时候打扰他。", next:"p12"},
+{id:"p12", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"你玩原神吗？", next:"p13"},
+{id:"p13", bg:"classroom", speaker:"游竣", sprite:"youjun", text:"……你怎么知道？！", next:"p14"},
+{id:"p14", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"你书皮底下露出来了。胡桃的吧。", next:"p15"},
+{id:"p15", bg:"classroom", speaker:"游竣", sprite:"youjun", text:"……是又怎样！", next:"p16"},
+{id:"p16", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"我也玩。还有鸣潮、Apex。你什么段位？", next:"p17"},
+{id:"p17", bg:"classroom", speaker:null, text:"……", choices:[
+  {text:"我Apex白金，鸣潮长离厨，深渊满星。", next:"p18a", aff:2, flag:"game"},
+  {text:"我原神胡桃厨，深渊满星！", next:"p18b", aff:1, flag:"game"},
+  {text:"……关你什么事。", next:"p18c", aff:0}
+]},
+{id:"p18a", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"……行啊，白金。周末一起？带我一个。", next:"p19"},
+{id:"p18b", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"胡桃厨？深渊满星？那更得一起打了。", next:"p19"},
+{id:"p18c", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"……行，傲娇是吧。你越不说，我越想知道。", next:"p19"},
+{id:"p19", bg:"classroom", speaker:"游竣", sprite:"youjun", text:"我凭什么带你？你什么段位？", next:"p20"},
+{id:"p20", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"大师。带得动你。", next:"p21"},
+{id:"p21", bg:"classroom", speaker:"游竣", sprite:"youjun", text:"……你、你早点说啊！……那，周末几点？", next:"p22"},
+{id:"p22", bg:"rooftop", speaker:null, text:"周末，我们在网吧双排到天黑。他打Apex的时候话特别少，但每次我倒地，他都是第一个冲过来扶的那个。那天赢了输了记不清了，只记得网吧的汽水很冰，他的肩离我很近。", next:"c01"},
+{id:"c01", chapter:"第一章 · 出头", next:"c02"},
+{id:"c02", bg:"classroom", speaker:null, text:"高一的日子说快也快。唯一让我烦心的，是生物老师老周——不知道为什么，他总看我鼻子不是鼻子眼不是眼。", next:"c03"},
+{id:"c03", bg:"classroom", speaker:"生物老师", text:"游竣！你的作业呢？！", next:"c04"},
+{id:"c04", bg:"classroom", speaker:"游竣", sprite:"youjun", text:"交了。今天早上放课代表桌上了。", next:"c05"},
+{id:"c05", bg:"classroom", speaker:"生物老师", text:"交了？你确定？我翻了整摞都没有！你是不是又在撒谎？！", next:"c06"},
+{id:"c06", bg:"classroom", speaker:"游竣", sprite:"youjun", text:"我真交了……", next:"c07"},
+{id:"c07", bg:"classroom", speaker:null, text:"他冷笑一声，当着全班的面，把我放在讲台上的那本作业“唰”地撕成两半，又补了两下，撕成四片，扔回我桌上。", next:"c08"},
+{id:"c08", bg:"classroom", speaker:"生物老师", text:"重写十遍！写不完别来上我的课！", next:"c09"},
+{id:"c09", bg:"classroom", speaker:null, text:"全班四十双眼睛齐刷刷地看向我。我攥紧拳头，指甲掐进手心。不是委屈，是丢人。我游竣什么时候被人这么按在地上踩过。", next:"c10"},
+{id:"c10", bg:"classroom", speaker:null, text:"那天放学，我留在空教室里，把撕碎的作业一片片拼起来，用胶带粘。粘到一半，一只手忽然从旁边伸过来，拿走了碎片。", next:"c11"},
+{id:"c11", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"别粘了。我帮你重写一份。", next:"c12"},
+{id:"c12", bg:"classroom", speaker:"游竣", sprite:"youjun", text:"……不用你管！我自己能行！", next:"c13"},
+{id:"c13", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"你行个屁。他把胶带往桌上一拍，抓起我的书包：走，去找老周。", next:"c14"},
+{id:"c14", bg:"classroom", speaker:"游竣", sprite:"youjun", text:"找他干嘛？！他都把作业撕了！", next:"c15"},
+{id:"c15", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"找他讲道理。今早你的作业确实是课代表收的，我看见了，我作证。", next:"c16"},
+{id:"c16", bg:"classroom", speaker:"游竣", sprite:"youjun", text:"你……你什么时候看见的！", next:"c17"},
+{id:"c17", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"你放作业的时候。他顿了顿，声音低下来：放心，不会让你白挨欺负。", next:"c18"},
+{id:"c18", bg:"classroom", speaker:null, text:"他拉着我往办公室走，步子很急，手劲儿很大。我一路挣一路骂他多管闲事，但说真的——心里好像没那么难过了。", next:"c19"},
+{id:"c19", bg:"classroom", speaker:null, text:"办公室门口，我站住了。", choices:[
+  {text:"“……你站我旁边就行，别说话。”", next:"c20a", aff:2, flag:"defend"},
+  {text:"“还是我自己进去吧，你别掺和。”", next:"c20b", aff:1},
+  {text:"“要不……算了吧，忍忍就过去了。”", next:"c20c", aff:-2}
+]},
+{id:"c20a", bg:"classroom", speaker:null, text:"办公室里，小龙一言不发地站在我旁边，像一堵墙。老周的眼神在小龙脸上停了两秒，声音莫名软了半截：“……行，这事是老师看岔了，作业补交一份就行。”", next:"c21"},
+{id:"c20b", bg:"classroom", speaker:null, text:"我一个人进去，老周又阴阳了两句才放行。出来时小龙还靠在墙边等我：“完事了？”我闷声：“……嗯。”他往我手里塞了一瓶汽水：“那走，请你吃饭。”", next:"c21"},
+{id:"c20c", bg:"classroom", speaker:null, text:"我终究没进去。第二天，老周又在课上点我的名：“有些同学，作业交不明白，人倒是挺会躲。”小龙在桌下踢了我一脚，低声道：“别理他。你越怂，他越来劲。”", next:"c21"},
+{id:"c21", bg:"classroom", speaker:null, text:"生物的事刚过去，物理老师老刘又成了我的“天敌”。老刘上课最爱阴阳怪气，而我，恰好是他的重点关照对象。", next:"c22"},
+{id:"c22", bg:"classroom", speaker:"物理老师", text:"游竣，这道题你来。……不会吧？上课不是睡觉就是发呆，难怪上次月考物理才考32。", next:"c23"},
+{id:"c23", bg:"classroom", speaker:"游竣", sprite:"youjun", text:"老师，我上次考的是82。", next:"c24"},
+{id:"c24", bg:"classroom", speaker:"物理老师", text:"82？那是超常发挥。你爸妈可别高兴太早，下次能考回及格线再说吧。", next:"c25"},
+{id:"c25", bg:"classroom", speaker:null, text:"全班都在憋笑。我站在黑板前，粉笔在手里快捏断了。", choices:[
+  {text:"“老师，82就是82，阴阳怪气不能改变它。”", next:"c26a", aff:2, flag:"backfire"},
+  {text:"忍了，下课后自己去办公室把题讲明白。", next:"c26b", aff:1, flag:"effort"},
+  {text:"低着头，什么也没说。", next:"c26c", aff:-1}
+]},
+{id:"c26a", bg:"classroom", speaker:null, text:"教室安静了一瞬。老刘脸色黑了黑，最后哼了一声：“……行，有骨气。坐下吧。”我坐下的时候腿都在抖，但小龙在桌下悄悄给我竖了个拇指。", next:"c27"},
+{id:"c26b", bg:"classroom", speaker:null, text:"下课后我拿着卷子去了办公室，把整道题从头讲到尾。老刘难得没阴阳：“……行吧，算你懂了。”出来时小龙靠在走廊上：“够可以的啊，自己找上门。”我：“那必须的，我这人从不吃亏。”", next:"c27"},
+{id:"c26c", bg:"classroom", speaker:null, text:"我什么也没说，低着头坐下。小龙在桌下踢了踢我：“喂。”我：“……嗯？”他：“下回考个满分给他看，打他脸。”我没忍住，笑了一下：", next:"c27"},
+{id:"c27", bg:"rooftop", speaker:null, text:"那天放学，小龙把一瓶汽水放在我桌上：“生物的事翻篇了。物理那老头就那样，别放心上。”我：“……你少来。”他：“我不是安慰你。我是怕你气死，没人陪我打Apex。”我：“……滚。”", next:"j01"},
+{id:"j01", chapter:"第二章 · 吃醋", next:"j02"},
+{id:"j02", bg:"classroom", speaker:null, text:"小龙这人，话不多，但架不住长得好、成绩好、球打得好。开学没多久，他的抽屉里就开始出现各种小零食和情书。", next:"j03"},
+{id:"j03", bg:"classroom", speaker:null, text:"那天课间，隔壁班的谭琳莉站在我们教室门口，红着脸把一瓶奶茶和一封信递到小龙面前：“那个……小龙同学，这个……给你！”", next:"j04"},
+{id:"j04", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"……（他抬眼看了一下）不用，你拿回去吧。", next:"j05"},
+{id:"j05", bg:"classroom", speaker:"谭琳莉", text:"我、我写了好久……你不看看吗……", next:"j06"},
+{id:"j06", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"不用。他声音很淡：东西还你，信你自己留着。我不看别人的心意。", next:"j07"},
+{id:"j07", bg:"classroom", speaker:null, text:"谭琳莉红着眼眶走了。我坐在旁边，手里的笔转了三圈，忽然“啪”地一声拍在桌上。……关我什么事。又不是第一次有人跟他表白了。我为什么要烦。", next:"j08"},
+{id:"j08", bg:"classroom", speaker:null, text:"中午食堂，小龙端着餐盘在我对面坐下，像什么都没发生一样。", choices:[
+  {text:"“你挺受欢迎啊，情书收到手软吧。”", next:"j09a", aff:1, flag:"jealous"},
+  {text:"一整天没怎么理他，他说话我只“嗯”。", next:"j09b", aff:0},
+  {text:"“下午放学打Apex，我拉你。”", next:"j09c", aff:2}
+]},
+{id:"j09a", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"……你吃醋了？", next:"j10a"},
+{id:"j10a", bg:"classroom", speaker:"游竣", sprite:"youjun", text:"谁、谁吃醋了！你爱收谁的信收谁的！", next:"j11a"},
+{id:"j11a", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"哦。那我明天去收谭琳莉的信。", next:"j12a"},
+{id:"j12a", bg:"classroom", speaker:"游竣", sprite:"youjun", text:"你敢！……我、我是说你收别人的信影响学习！", next:"j13a"},
+{id:"j13a", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"……（他嘴角弯了一下，没戳穿）行，听你的，不收了。", next:"j14"},
+{id:"j09b", bg:"classroom", speaker:null, text:"我一整天没怎么理他。放学时他在教室门口堵住我：“游竣，你今天怎么了？”我：“没怎么。”他盯着我看了两秒：“……你是不是不舒服？”我：“我舒服得很！你别烦我！”", next:"j10b"},
+{id:"j10b", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"……行。那我先走了。他走得很干脆。我站在原地，忽然觉得自己挺没劲的——他明明什么都没做错。", next:"j14"},
+{id:"j09c", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"……嗯。他低头扒饭，过了好一会儿才说：今天那封信，我没收。", next:"j10c"},
+{id:"j10c", bg:"classroom", speaker:"游竣", sprite:"youjun", text:"……哦。谁问你收没收了！", next:"j11c"},
+{id:"j11c", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"我就告诉你一声。他声音很轻：别人给的，我都不会收。", next:"j14"},
+{id:"j14", bg:"classroom", speaker:null, text:"又过了几天，体育课。小龙打球崴了脚，我把他扶到医务室，出来的时候，看见校医姐姐正弯腰帮他揉脚踝。", next:"j15"},
+{id:"j15", bg:"classroom", speaker:"校医", text:"小同学，脚踝有点肿，这几天别剧烈运动啊。这位同学，你朋友？", next:"j16"},
+{id:"j16", bg:"classroom", speaker:"游竣", sprite:"youjun", text:"……嗯，朋友。我站在门口，忽然觉得“朋友”两个字有点刺耳。", next:"j17"},
+{id:"j17", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"……他是我同桌。他忽然开口，声音不大：不是一般朋友。", next:"j18"},
+{id:"j18", bg:"classroom", speaker:null, text:"我的心跳漏了一拍。他什么意思？什么叫不是一般朋友？我张了张嘴，最终只说出一句：“……你少胡说。”", next:"j19"},
+{id:"j19", bg:"classroom", speaker:null, text:"晚上打Apex，我连输三把。小龙在语音里问：“你今天状态不对，怎么了？”", choices:[
+  {text:"“……你今天那句‘不是一般朋友’，什么意思？”", next:"j20a", aff:2, flag:"ask"},
+  {text:"“没什么，手感差。”", next:"j20b", aff:0},
+  {text:"“你管我呢，打你的。”", next:"j20c", aff:-1}
+]},
+{id:"j20a", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"……就是字面意思。他在语音里顿了一下：游竣，你觉得自己对我而言，是什么？", next:"j21a"},
+{id:"j21a", bg:"classroom", speaker:"游竣", sprite:"youjun", text:"我……我当然是……（我卡住了。忽然发现这个问题，我回答不上来。）", next:"j22a"},
+{id:"j22a", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"……没事，不急着答。他声音很轻：等你想清楚了，再告诉我。那天晚上我盯着天花板到凌晨两点，还是没想清楚。", next:"m01"},
+{id:"j20b", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"……嗯。他没再追问。但那天他悄悄放了一颗糖在我桌上，没有署名。我盯着那颗糖看了很久，还是没舍得吃。", next:"m01"},
+{id:"j20c", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"……行。他也没生气，只是那之后连着几天，都主动把食堂最好吃的鸡腿让给我。我嘴上说“别来这套”，心里那点烦躁，却一点点化开了。", next:"m01"},
+{id:"m01", chapter:"第三章 · 磨合期", next:"m02"},
+{id:"m02", bg:"classroom", speaker:null, text:"日子久了，我和小龙之间也开始有磕磕绊绊。最先出问题的，是我这张嘴。", next:"m03"},
+{id:"m03", bg:"classroom", speaker:null, text:"月考出分那天，我物理考了78，比上次进步十分。小龙帮我讲了两周题，看到分数时难得笑了一下：“还行。”", next:"m04"},
+{id:"m04", bg:"classroom", speaker:"游竣", sprite:"youjun", text:"什么还行！是进步巨大！再说了，这跟你有什么关系，是我自己聪明！", next:"m05"},
+{id:"m05", bg:"classroom", speaker:null, text:"小龙脸上的笑淡了一点：“……嗯，你聪明。”然后他转回去，一整个下午没再跟我说话。", next:"m06"},
+{id:"m06", bg:"classroom", speaker:null, text:"放学时他也没等我，一个人背着书包先走了。我盯着他的背影，心里堵得慌——我说错什么了？平时不都这么说话的吗？", choices:[
+  {text:"追上去：“喂，你生气了？”", next:"m07a", aff:2, flag:"ask2"},
+  {text:"等他先开口。我偏不先低头。", next:"m07b", aff:0},
+  {text:"……我是不是真的说错话了。", next:"m07c", aff:1}
+]},
+{id:"m07a", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"……没生气。他步子没停，声音闷闷的：我就是觉得，我做的那些，你好像从来看不见。", next:"m08a"},
+{id:"m08a", bg:"classroom", speaker:"游竣", sprite:"youjun", text:"我……我看见了！我就是……我嘴欠！我那句“跟你没关系”是顺嘴说的！我、我道歉还不行吗！", next:"m09a"},
+{id:"m09a", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"他停下来，看了我很久，然后说：“……你道歉的样子，还挺可爱。”我：“你才可爱！你全家都可爱！”他：“……行，我可爱。”", next:"m10"},
+{id:"m07b", bg:"classroom", speaker:null, text:"我们沉默着走完了回家的路。第二天早上，小龙照常把早餐放在我桌上，但没跟我说话。这比吵架还难受。", next:"m08b"},
+{id:"m08b", bg:"classroom", speaker:null, text:"第三天，我憋不住了。午休时我往他桌上放了一瓶他最爱的橘子汽水，然后假装若无其事地走开。下午，他拧开喝了。我听见那声“啵”，悬了两天的心，总算落了地。", next:"m09b"},
+{id:"m09b", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"……（他喝完汽水，转头看我）游竣，你下次想和好，直接说就行。", next:"m10"},
+{id:"m07c", bg:"classroom", speaker:null, text:"那天晚上我辗转反侧。第二天早上，我在他桌上放了张纸条：对不起，我嘴欠，你讲的两周题我都记着。……你骂我两句也行。", next:"m08c"},
+{id:"m08c", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"……（他看完纸条，半天没说话。然后他把纸条小心折好放进口袋，说）……游竣，我没骂你。我舍不得。", next:"m10"},
+{id:"m10", bg:"classroom", speaker:null, text:"那之后，我学会了在“嘴硬”后面补一句真话。虽然补得磕磕绊绊，但小龙好像都听得懂。", next:"m11"},
+{id:"m11", bg:"classroom", speaker:null, text:"磨合期没过完，新的考验就来了。周末双排Apex，我落地成盒，小龙一个人打到决赛圈。语音里我听见他那边传来一个陌生的声音：“兄弟，拉我进圈！”", next:"m12"},
+{id:"m12", bg:"classroom", speaker:"游竣", sprite:"youjun", text:"……（我盯着屏幕，忽然问）你队友？", next:"m13"},
+{id:"m13", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"匹配的路人。……怎么，你介意？", next:"m14"},
+{id:"m14", bg:"classroom", speaker:null, text:"我介意吗？我说不上来。就是看着他跟别人配合默契的样子，心里有点发酸。", choices:[
+  {text:"“……我介意。”", next:"m15a", aff:2, flag:"claim"},
+  {text:"“不介意，你打你的。”", next:"m15b", aff:-1, flag:"letgo"},
+  {text:"“我困了，先下了。”", next:"m15c", aff:0}
+]},
+{id:"m15a", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"……（语音那边安静了几秒。然后他把路人踢了，声音带着点笑意）那我不跟他打。我只跟你打。", next:"m16"},
+{id:"m15b", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"……嗯。那局结束之后，他跟我说：游竣，你以后要是介意，就直接说。你不说，我不知道。", next:"m16"},
+{id:"m15c", bg:"classroom", speaker:null, text:"我说我困了，下线前，看见他还在房间里。第二天他问我：“你昨晚是不是不高兴了？”我：“没有。”他：“……嗯。”那之后好几天，他都没再随机匹配队友。", next:"m16"},
+{id:"m16", bg:"classroom", speaker:null, text:"磕磕绊绊，吵吵闹闹，高一就这么过去了。暑假前最后一堂课，班主任宣布：下学年转来一个插班生，听说很优秀。", next:"r01"},
+{id:"r01", chapter:"第四章 · 修罗场", next:"r02"},
+{id:"r02", bg:"classroom", speaker:null, text:"高二开学，插班生来了。男生，叫疯马吉，白衬衫，金丝眼镜，年级前三，据说还会弹钢琴。他走进教室的时候，全班的目光都跟着他转。", next:"r03"},
+{id:"r03", bg:"classroom", speaker:"疯马吉", text:"大家好，我叫疯马吉。以后请多指教。……（他看了一眼座位表，朝我身后的空位走过来）", next:"r04"},
+{id:"r04", bg:"classroom", speaker:null, text:"疯马吉坐在我后面。他跟我说的第一句话是：“同学，你打Apex吗？我看你书皮上贴了Apex的贴纸。”", next:"r05"},
+{id:"r05", bg:"classroom", speaker:"游竣", sprite:"youjun", text:"……打。怎么了？", next:"r06"},
+{id:"r06", bg:"classroom", speaker:"疯马吉", text:"太好了。加个好友？我白金三，缺个固定队友。", next:"r07"},
+{id:"r07", bg:"classroom", speaker:null, text:"我还没说话，小龙的声音从旁边传来：“他有固定队友了。”疯马吉看向小龙，笑了笑：“哦？那正好，一起排啊。”", choices:[
+  {text:"“不用了，我们俩排惯了。”", next:"r08a", aff:1, flag:"claim2"},
+  {text:"“……加吧，人多热闹。”", next:"r08b", aff:-1, flag:"loose"},
+  {text:"“看他俩的意思，我无所谓。”", next:"r08c", aff:0}
+]},
+{id:"r08a", bg:"classroom", speaker:"疯马吉", text:"……行吧。他笑了笑，没再坚持。但我总觉得他看小龙的眼神，有点不一样。", next:"r09"},
+{id:"r08b", bg:"classroom", speaker:null, text:"那天晚上，疯马吉真的拉了个三排。他一整局都在夸小龙枪法好、意识强。我在旁边听着，手里的枪差点压不住。", next:"r09"},
+{id:"r08c", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"……我无所谓。他说完看了我一眼：不过我更习惯双排。", next:"r09"},
+{id:"r09", bg:"classroom", speaker:null, text:"疯马吉来得快，融入得也快。他是那种很容易让人喜欢的人——温和、优秀、进退有度。他很快和小龙混熟了，课间一起讨论战术，周末约着去网吧。", next:"r10"},
+{id:"r10", bg:"classroom", speaker:null, text:"那天疯马吉抱着一罐奶茶走过来，放在小龙桌上：“给你带的，冰的。”全班都安静了一下。", choices:[
+  {text:"“他不喝奶茶，他喝汽水。拿走吧。”", next:"r11a", aff:2, flag:"block2"},
+  {text:"看着小龙，等他表态。", next:"r11b", aff:0},
+  {text:"低头假装看书，什么都没说。", next:"r11c", aff:-1, flag:"retreat"}
+]},
+{id:"r11a", bg:"classroom", speaker:"疯马吉", text:"……哦？你怎么知道他喝汽水？", next:"r12a"},
+{id:"r12a", bg:"classroom", speaker:"游竣", sprite:"youjun", text:"我是他同桌，我还能不知道？", next:"r13a"},
+{id:"r13a", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"……（他看了我一眼，嘴角翘了翘）他说得对，我喝汽水。", next:"r14"},
+{id:"r11b", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"……谢谢，不用了。他声音很淡：我不喝别人带的东西。", next:"r12b"},
+{id:"r12b", bg:"classroom", speaker:"疯马吉", text:"……好，记住了。他笑着把奶茶收回去，但看小龙的眼神，更亮了。", next:"r14"},
+{id:"r11c", bg:"classroom", speaker:null, text:"疯马吉把奶茶放下：“尝尝呗，新出的口味。”小龙看了那罐奶茶一眼，没动：“……放着吧。”我低着头，假装那行字看了十分钟。", next:"r14"},
+{id:"r14", bg:"classroom", speaker:null, text:"真正的转折，发生在那个周五。疯马吉站在讲台前，声音不大，但全班都听见了：", next:"r15"},
+{id:"r15", bg:"classroom", speaker:"疯马吉", text:"……我想说，我挺喜欢小龙的。不是朋友那种喜欢。我想追他。", next:"r16"},
+{id:"r16", bg:"classroom", speaker:null, text:"教室里一片哗然。我手里的笔“啪”地掉在地上，弯腰去捡，捡了三次才捡起来。", next:"r17"},
+{id:"r17", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"……（小龙站起来，看了一眼疯马吉，又看了一眼我。他声音很平静）疯马吉，这话，你该问我，而不是问全班。", next:"r18"},
+{id:"r18", bg:"classroom", speaker:null, text:"放学后，疯马吉在天台等我。他开门见山：“游竣，我知道你跟小龙关系好。但我想公平竞争。”", choices:[
+  {text:"“他不是商品，谈不上竞争。而且……他喜欢谁，我比你有数。”", next:"r19a", aff:3, flag:"stand"},
+  {text:"“……你要是真喜欢他，就去追呗。跟我没关系。”", next:"r19b", aff:-2, flag:"pushaway"},
+  {text:"“……我不知道。你别问我。”", next:"r19c", aff:-1}
+]},
+{id:"r19a", bg:"classroom", speaker:"疯马吉", text:"……他喜欢你？疯马吉盯着我：那你呢？你喜欢他吗？我张了张嘴，那句“喜欢”卡在喉咙里，怎么都出不来。疯马吉看我的反应，笑了笑：“……看来，你也没想清楚。”", next:"r20"},
+{id:"r19b", bg:"classroom", speaker:"疯马吉", text:"……行。有你这句话，我就放心追了。他转身走了。我站在原地，忽然觉得天台的风特别冷。", next:"r20"},
+{id:"r19c", bg:"classroom", speaker:"疯马吉", text:"……好，那我先问你：如果我和小龙在一起了，你会难过吗？我：“……”他：“……看来会。”", next:"r20"},
+{id:"r20", bg:"classroom", speaker:null, text:"那之后，疯马吉追得光明正大。他给小龙带早餐、占球场、整理笔记，做得滴水不漏。而小龙……没有拒绝，也没有接受。", next:"r21"},
+{id:"r21", bg:"classroom", speaker:null, text:"我越来越烦躁。终于，在一个下午，我把小龙堵在走廊里。", choices:[
+  {text:"“你到底怎么想的？你要是喜欢他，我就……我就退出。”", next:"r22a", aff:-2, flag:"giveup2"},
+  {text:"“你为什么不拒绝他？你是不是也喜欢他？”", next:"r22b", aff:1, flag:"ask3"},
+  {text:"“……疯马吉给你带的早餐，好吃吗？”", next:"r22c", aff:2, flag:"jealous2"}
+]},
+{id:"r22a", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"……（他愣住，然后声音沉下来）游竣，我为什么要在意疯马吉？他说：从始至终，我等的都是你的答案。", next:"l01"},
+{id:"r22b", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"……我不喜欢他。他看着我的眼睛：我只想知道，你问我这个，是因为在意，还是因为怕输？", next:"l01"},
+{id:"r22c", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"……（他忽然笑了，很轻）不好吃。我一口都没动。他在等你开口，我何尝不是。", next:"l01"},
+{id:"l01", chapter:"第五章 · 恋爱期 · 高考告白", next:"l02"},
+{id:"l02", bg:"classroom", speaker:null, text:"高三，六月。黑板上的倒计时归零，最后一科交卷铃响起的瞬间，整栋教学楼都在欢呼。疯马吉追了小龙一整个高三，小龙始终没松口。班里渐渐有人说闲话：“小龙到底喜欢谁啊？”“不会真跟游竣有什么吧？”", next:"l03"},
+{id:"l03", bg:"classroom", speaker:null, text:"毕业典礼那天，小龙把我堵在座位上：“游竣，今晚有空吗？”我：“……干嘛？”他：“……陪我去个地方。”我：“你找疯马吉去呗，他不是挺想跟你去的。”", next:"l04"},
+{id:"l04", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"……（他沉默了几秒，声音低下来）游竣，你非要这样吗？", next:"l05"},
+{id:"l05", bg:"classroom", speaker:"游竣", sprite:"youjun", text:"……我哪样了？我就是觉得，你身边从来不缺人陪。", next:"l06"},
+{id:"l06", bg:"classroom", speaker:"小龙", sprite:"xiaolong", text:"不缺别人，缺你。他说完转身就走，走到门口又停住：今晚七点，学校天台。来不来，你说了算。", next:"l07"},
+{id:"l07", bg:"classroom", speaker:null, text:"那天晚上我盯着天花板，翻来覆去。去，还是不去？……啧，去就去，谁怕谁。", next:"l08"},
+{id:"l08", bg:"rooftop", speaker:null, text:"晚上七点，毕业典礼刚散场，同学们三三两两往校门口走。我磨磨蹭蹭上到天台——小龙已经站在栏杆边，白衬衫，身姿笔直。夕阳还没完全落下，把他镀成金色。", next:"l09"},
+{id:"l09", bg:"rooftop", speaker:"小龙", sprite:"xiaolong", text:"……你来了。他声音有点哑：我以为你不会来。", next:"l10"},
+{id:"l10", bg:"rooftop", speaker:"游竣", sprite:"youjun", text:"……我说了算，那我当然来。我偏过头：你少得意，我是来看夕阳的。", next:"l11"},
+{id:"l11", bg:"rooftop", speaker:null, text:"他递过来一瓶汽水，瓶身还带着凉意：“你爱喝的那个口味。”我们并肩靠在栏杆上，天边烧成一片橘红。远处的教学楼亮起灯，像谁点了一整排蜡烛。", next:"l12"},
+{id:"l12", bg:"rooftop", speaker:null, text:"夕阳沉下去一半的时候，他忽然转过身，认真地看着我。", next:"l13"},
+{id:"l13", bg:"rooftop", speaker:"小龙", sprite:"xiaolong", text:"游竣。疯马吉追了我一年，我没答应，是因为我心里一直有人。他顿了顿：那个人，是你。", next:"l14"},
+{id:"l14", bg:"rooftop", speaker:null, text:"晚风吹过来。世界好像安静了。我听见自己的心跳声，大得吓人。我张了张嘴——", choices:[
+  {text:"“……我也喜欢你。”", next:"l15a", aff:5, flag:"confess"},
+  {text:"“……你再说一遍。”", next:"l15b", aff:3, flag:"confess2"},
+  {text:"“……让我想想，行吗？”", next:"l15c", aff:-3, flag:"think"},
+  {text:"“……我配不上你。你找疯马吉吧。”", next:"l15d", aff:-5, flag:"deny"},
+  {text:"“……别开玩笑了。我们不是兄弟吗？”", next:"l15e", aff:-5, flag:"reject"}
+]},
+{id:"l15a", bg:"rooftop", speaker:null, text:"五个字说出口，我整个人都在抖。小龙愣在原地，然后——他笑了。是我见过他笑得最凶的一次，也是最好看的一次。他一把把我拉进怀里，声音都在抖：“……你再说一遍。”我埋在他肩膀上，闷声道：“……我也喜欢你。你聋了吗！”", next:"s50"},
+{id:"l15b", bg:"rooftop", speaker:"小龙", sprite:"xiaolong", text:"我喜欢你。他看着我，一字一句：游竣，我喜欢你。……你要听几遍都行。", next:"l16b"},
+{id:"l16b", bg:"rooftop", speaker:"游竣", sprite:"youjun", text:"……（我的耳朵烧得厉害，半天才挤出一句）那……那你以后只能给我买汽水。", next:"l17b"},
+{id:"l17b", bg:"rooftop", speaker:"小龙", sprite:"xiaolong", text:"……好。他伸手揉了揉我的头发：一辈子都给你买。那天晚上，夕阳沉下去很久，我们的手一直牵着。", next:"s50"},
+{id:"l15c", bg:"rooftop", speaker:null, text:"“……让我想想。”小龙看着我，眼里的光一点点暗下去。他笑了笑：“……好，我等你。”夕阳还在沉，我们却都安静了。那句“我也喜欢你”，我终究没说出口。", next:"s50"},
+{id:"l15d", bg:"rooftop", speaker:null, text:"“……我配不上你。”我说完就后悔了。小龙愣在原地，看着我：“……你再说一遍？”我：“……我……”他忽然笑了，笑得很难看：“游竣，你连试都不肯试，就要把我推给别人？”那天晚上，他第一次先我一步离开了天台。", next:"s50"},
+{id:"l15e", bg:"rooftop", speaker:null, text:"“……别开玩笑了。我们不是兄弟吗？”小龙看着我，很久很久。然后他说：“……兄弟。”他把手里那瓶汽水轻轻放进我手里：“……那是我记错了。”他转身走下天台，夕阳还在沉，他的背影却像被夜色吞掉了。", next:"s50"},
+{id:"l18", bg:"rooftop", speaker:null, text:"（那天之后……）", next:"s50"},
+{id:"s50", route:[
+  {next:"e6", req:{flag:"reject"}},
+  {next:"e3", req:{flag:"deny"}},
+  {next:"e5", req:{flag:"think"}},
+  {next:"e4", req:{flag:"confess", flag2:"giveup2"}},
+  {next:"e4", req:{flag:"confess2", flag2:"giveup2"}},
+  {next:"e1", req:{flag:"confess", affMin:20}},
+  {next:"e1", req:{flag:"confess2", affMin:20}},
+  {next:"e2", req:{flag:"confess"}},
+  {next:"e2", req:{flag:"confess2"}},
+  {next:"e5", req:{}}
+]},
+{id:"e1", ending:"e1", bg:"rooftop", speaker:null, text:"在一起之后，我才发现，原来“被攻略”也没那么丢人。他每天早上给我带汽水，我嘴硬说“谁要你带”，第二天桌上还是会出现。他打球崴脚，我嘴上骂他“活该”，手却把他扶得很稳。疯马吉后来去了别的学校，临走前跟我说：“你赢了。”我：“……我从来没想跟你比。”——高考结束的那个傍晚，天台上，他把外套披在我肩上：“游竣，你以后嘴硬一次，我就亲你一次。”我：“你试试看！”他：“……好。”后来的后来，我们都记得那个六月——嘴上说着“才不会被攻略”，其实心早就交出去了。好在，他接住了。"},
+{id:"e2", ending:"e2", bg:"rain", speaker:null, text:"我们在一起了。可在一起之后，我才发现——我学不会好好说话，他也学不会主动开口。我吃醋了不肯说，生闷气；他以为我不在意，也沉默。争吵从“你为什么不回消息”，到“你根本不了解我”，再到无话可说。分手那天下雨，他站在我家楼下，声音很轻：“游竣，我喜欢你。可我们这样，太累了。”我：“……嗯。”他走了。我站在原地，忽然想起高中那个夏天——他帮我粘作业，帮我怼老师，给我带汽水。那时候我们明明，连话都不用多说。"},
+{id:"e3", ending:"e3", bg:"rain", speaker:null, text:"我说“我配不上你，你找疯马吉吧”之后，他再没找过我。疯马吉追了他三个月，他答应了。那天我躲在走廊转角，看见他们并肩走过，疯马吉帮他拿着书包，两个人有说有笑。我忽然明白，有些话说出口就收不回了。我把自己最爱的人，亲手推给了别人。——后来同学聚会，他喝多了，红着眼眶问我：“游竣，你那天……为什么要那样说？”我：“……对不起。”他：“我不要对不起。”他盯着我看了很久：“我要你说实话。”我张了张嘴，那句“我喜欢你”，这辈子都没能再说出口。"},
+{id:"e4", ending:"e4", bg:"rain", speaker:null, text:"修罗场那阵子，我对小龙说过“你要是喜欢他，我就退出”。虽然高考结束那晚，我在天台上说了喜欢他，他也抱了我——可我总觉得，那句“退出”像根刺，扎在他心里。后来他去外省读大学，认识了新的朋友。再后来，我听说他身边有了别人。我盯着手机里他的朋友圈，看了很久，最终没有点开。——有些话，说出去就是泼出去的水。我推开过他一次，就再也没有资格伸手了。"},
+{id:"e5", ending:"e5", bg:"rooftop", speaker:null, text:"我说“让我想想”。然后我想了整整一个夏天，想到大学开学。开学前夜，他在人群里，隔着很多人看着我，嘴唇动了动，像是有话要说。可那句话，我们谁都没说出口。他去了北方的大学，我留在了南方。后来的很多年，我偶尔会在游戏里看见他上线，我们像两个陌生人一样，各自打着各自的排位。——其实我早就想清楚了。只是那时候的我，连一句“我喜欢你”，都要犹豫一个夏天。青春里的错过，往往不是因为不爱，而是因为不敢。"},
+{id:"e6", ending:"e6", bg:"rain", speaker:null, text:"“我们不是兄弟吗？”这句话说出口的时候，我看见他眼里的光彻底熄灭了。他走了。第二天，他申请换了座位。我们成了同班同学里最陌生的两个人。疯马吉后来找他，他也没答应——他把所有人都关在了门外。高考结束，他去了很远的城市，拉黑了所有人的联系方式，包括我。多年后同学聚会，有人提起他，说他过得不错，有了自己的生活。——我坐在角落里，把面前的酒一口喝完。我常常想，如果那天我没有说那句“兄弟”，我们会不会不一样。可这世上，没有如果。我亲手把最爱我的人，推成了陌生人。"},
+];
+
+const ENDINGS = {
+  e1:{rank:"he",   rankTxt:"幸福结局", title:"天台上的告白", bg:"rooftop"},
+  e2:{rank:"be",   rankTxt:"BE · 分手", title:"分手", bg:"rain"},
+  e3:{rank:"be",   rankTxt:"BE · 背叛", title:"背叛", bg:"rain"},
+  e4:{rank:"be",   rankTxt:"BE · 追去其他人", title:"追去其他人", bg:"rain"},
+  e5:{rank:"be",   rankTxt:"BE · 错过", title:"错过", bg:"rooftop"},
+  e6:{rank:"be",   rankTxt:"BE · 决裂", title:"决裂", bg:"rain"}
+};
+/* ================= 结局图鉴描述 ================= */
+const ENDINGS_DESC = {
+  e1:"高考结束的傍晚，天台上，他说喜欢我，我说我也是。从同桌到并肩，我嘴硬了一整个青春，他把每句“才不要”都听成了“要”。",
+  e2:"我们在一起了，却学不会好好说话。一次次的冷战把喜欢磨光，分手那天下雨，他走之前说：“游竣，你以后少嘴硬一点。”",
+  e3:"我说“我配不上你，你找疯马吉吧”，然后他真的一步步走远了。我把自己最爱的人，亲手推给了别人。",
+  e4:"修罗场里我说过“你要是喜欢他，我就退出”。后来毕业，他身边真的有了别人——有些话，说出去就收不回了。",
+  e5:"“让我想想”，我想了整整一个夏天，想到毕业。青春里的错过，往往不是因为不爱，而是因为不敢。",
+  e6:"“我们不是兄弟吗？”这句话说出口，他眼里的光彻底熄灭了。我亲手把最爱我的人，推成了陌生人。"
+};
+
+/* ================= 游戏引擎 ================= */
+(function(){
+  const BG_IMAGES = {rooftop:"assets/bg-rooftop.png", library:"assets/bg-library.png", rain:"assets/bg-rain.png", festival:"assets/bg-festival.png", classroom:"assets/bg-classroom.png"};
+  const SPRITES = {youjun:"assets/youjun.png", xiaolong:"assets/xiaolong.png"};
+  const NAME_COLORS = {"游竣":"#f2a05c", "小龙":"#5aa9e6", "生物老师":"#8a8f9c", "物理老师":"#8a8f9c", "谭琳莉":"#d98fe8", "校医":"#6fc3a0", "疯马吉":"#e8b86f"};
+  const SAVE_KEY = "summer_rooftop_save_v1";
+  const END_KEY = "summer_rooftop_endings_v1";
+  const SET_KEY = "summer_rooftop_settings_v1";
+
+  const sceneMap = {};
+  SCENES.forEach(function(s){ sceneMap[s.id] = s; });
+
+  let state = {aff:0, flags:{}, scene:"p01"};
+  let unlocked = {};
+  let settings = {speed:28, sfx:true, showAff:false};
+  let typing = false, typeTimer = null, currentScene = null, waitingChoices = false, bgFlip = false;
+  let actx = null;
+
+  /* ---------- 工具 ---------- */
+  function $(id){ return document.getElementById(id); }
+  function saveState(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }catch(e){} }
+  function loadState(){ try{ var v = localStorage.getItem(SAVE_KEY); return v ? JSON.parse(v) : null; }catch(e){ return null; } }
+  function saveUnlocked(){ try{ localStorage.setItem(END_KEY, JSON.stringify(unlocked)); }catch(e){} }
+  function loadUnlocked(){ try{ var v = localStorage.getItem(END_KEY); return v ? JSON.parse(v) : {}; }catch(e){ return {}; } }
+  function saveSettings(){ try{ localStorage.setItem(SET_KEY, JSON.stringify(settings)); }catch(e){} }
+  function loadSettings(){ try{ var v = localStorage.getItem(SET_KEY); return v ? JSON.parse(v) : null; }catch(e){ return null; } }
+
+  function showView(id){
+    ["viewTitle","gameLay","viewEnd","viewGallery","viewAbout"].forEach(function(v){
+      document.getElementById(v).classList.toggle("active", v === id);
+    });
+  }
+  function setBG(key){
+    var url = BG_IMAGES[key] || BG_IMAGES.rooftop;
+    var from = bgFlip ? $("bgNow") : $("bgNext");
+    var to = bgFlip ? $("bgNext") : $("bgNow");
+    bgFlip = !bgFlip;
+    to.style.backgroundImage = "url(\"" + url + "\")";
+    to.classList.add("on");
+    from.classList.remove("on");
+  }
+  function setSprite(key){
+    var p = $("portrait");
+    if(!key){ p.classList.remove("on"); return; }
+    $("portraitImg").src = SPRITES[key] || SPRITES.xiaolong;
+    $("portraitName").textContent = (key === "youjun") ? "游竣" : "小龙";
+    p.classList.add("on");
+  }
+  function setNamePlate(name){
+    var plate = $("namePlate");
+    if(!name){ plate.textContent = "旁白"; plate.classList.add("narr"); return; }
+    plate.textContent = name;
+    plate.classList.remove("narr");
+    plate.style.background = NAME_COLORS[name] || "rgba(232,87,44,.85)";
+  }
+  function updateAffDisp(){
+    var el = $("affDisp");
+    if(settings.showAff){ el.textContent = "好感 ♥ " + state.aff; el.classList.remove("hide"); }
+    else{ el.classList.add("hide"); }
+  }
+
+  /* ---------- 音效 ---------- */
+  function initAudio(){
+    if(!actx){ try{ actx = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){} }
+  }
+  function blip(freq, dur, vol){
+    if(!settings.sfx || !actx) return;
+    try{
+      var o = actx.createOscillator(), g = actx.createGain();
+      o.type = "sine"; o.frequency.value = freq;
+      g.gain.value = vol || 0.04;
+      o.connect(g); g.connect(actx.destination);
+      var t = actx.currentTime;
+      g.gain.setValueAtTime(vol || 0.04, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + (dur || 0.08));
+      o.start(t); o.stop(t + (dur || 0.08) + 0.02);
+    }catch(e){}
+  }
+
+  /* ---------- 打字机 ---------- */
+  function typeText(el, text, cb){
+    stopTyping();
+    el.innerHTML = "";
+    if(settings.speed <= 0){ el.textContent = text; if(cb) cb(); return; }
+    typing = true;
+    var i = 0;
+    var chars = Array.from(text);
+    function step(){
+      if(!typing) return;
+      if(i < chars.length){
+        el.textContent += chars[i++];
+        if(i % 3 === 0) blip(880 + (i % 5) * 60, 0.025, 0.015);
+        typeTimer = setTimeout(step, settings.speed);
+      } else {
+        typing = false;
+        if(cb) cb();
+      }
+    }
+    step();
+  }
+  function stopTyping(){ typing = false; if(typeTimer){ clearTimeout(typeTimer); typeTimer = null; } }
+
+  /* ---------- 场景推进 ---------- */
+  function checkReq(req){
+    if(!req) return true;
+    if(req.flag && !state.flags[req.flag]) return false;
+    if(req.flag2 && !state.flags[req.flag2]) return false;
+    if(req.flag3 && !state.flags[req.flag3]) return false;
+    if(req.affMin !== undefined && state.aff < req.affMin) return false;
+    if(req.affMax !== undefined && state.aff > req.affMax) return false;
+    return true;
+  }
+
+  function showChoices(choices){
+    var box = $("choices");
+    box.innerHTML = "";
+    waitingChoices = true;
+    choices.forEach(function(c){
+      if(!checkReq(c.req)) return;
+      var b = document.createElement("button");
+      b.className = "cbtn";
+      b.textContent = c.text;
+      b.addEventListener("click", function(ev){
+        ev.stopPropagation();
+        blip(660, 0.06, 0.05);
+        box.innerHTML = "";
+        waitingChoices = false;
+        if(c.aff){ state.aff += c.aff; updateAffDisp(); }
+        if(c.flag){ state.flags[c.flag] = true; }
+        saveState();
+        go(c.next);
+      });
+      box.appendChild(b);
+    });
+  }
+
+  function triggerEnding(eid){
+    var scene = sceneMap[eid];
+    var info = ENDINGS[eid];
+    var isNew = !unlocked[eid];
+    unlocked[eid] = true; saveUnlocked();
+    $("endBg").style.backgroundImage = "url(\"" + BG_IMAGES[info.bg] + "\")";
+    $("endRank").textContent = info.rankTxt;
+    $("endRank").className = "end-rank rank-" + info.rank;
+    $("endTitle").textContent = info.title;
+    $("endNew").style.display = isNew ? "inline-block" : "none";
+    $("endText").textContent = scene.text;
+    showView("viewEnd");
+    blip(520, 0.1, 0.05);
+    setTimeout(function(){ blip(660, 0.12, 0.05); }, 160);
+    setTimeout(function(){ blip(880, 0.18, 0.05); }, 340);
+  }
+
+  function go(id){
+    var scene = sceneMap[id];
+    if(!scene){ console.error("missing scene: " + id); return; }
+    currentScene = scene;
+    state.scene = id;
+
+    if(scene.chapter){
+      $("chTag").textContent = "CHAPTER";
+      $("chTitle").textContent = scene.chapter;
+      $("chapterCard").classList.add("show");
+      var timer = setTimeout(function(){
+        if($("chapterCard").classList.contains("show")){
+          $("chapterCard").classList.remove("show");
+          go(scene.next);
+        }
+      }, 1400);
+      $("chapterCard")._timer = timer;
+      return;
+    }
+    if(scene.ending){ triggerEnding(scene.ending); return; }
+    if(scene.route){
+      for(var i = 0; i < scene.route.length; i++){
+        if(checkReq(scene.route[i].req)){ go(scene.route[i].next); return; }
+      }
+      return;
+    }
+
+    if(scene.bg) setBG(scene.bg);
+    if(scene.sprite){ setSprite(scene.sprite); }
+    if(scene.speaker) setNamePlate(scene.speaker); else setNamePlate(null);
+    saveState();
+
+    $("advHint").style.opacity = "1";
+    $("textArea").textContent = "";
+    $("choices").innerHTML = "";
+    waitingChoices = false;
+
+    if(scene.choices){
+      typeText($("textArea"), scene.text, function(){ showChoices(scene.choices); });
+    } else if(scene.next){
+      typeText($("textArea"), scene.text, function(){
+        $("advHint").style.opacity = "0.3";
+      });
+    } else {
+      typeText($("textArea"), scene.text, null);
+    }
+  }
+
+  /* 统一推进：点击文本区 / 空格 */
+  function advance(){
+    if($("chapterCard").classList.contains("show")) return;
+    if($("settingsModal").classList.contains("show")) return;
+    if(waitingChoices) return;
+    if(typing){
+      stopTyping();
+      $("textArea").textContent = currentScene.text;
+      if(currentScene.choices) showChoices(currentScene.choices);
+      else if(currentScene.next){ $("advHint").style.opacity = "0.3"; }
+      return;
+    }
+    if(currentScene && currentScene.next){
+      blip(440, 0.05, 0.03);
+      go(currentScene.next);
+    }
+  }
+
+  /* ---------- 结局图鉴 ---------- */
+  function renderGallery(){
+    var grid = $("galleryGrid");
+    grid.innerHTML = "";
+    var keys = ["e1","e2","e3","e4","e5","e6"];
+    var count = 0;
+    keys.forEach(function(k){
+      var info = ENDINGS[k];
+      var isOpen = !!unlocked[k];
+      if(isOpen) count++;
+      var card = document.createElement("div");
+      card.className = "g-card" + (isOpen ? "" : " locked");
+      var html = "<div class=\"g-rank\">" + info.rankTxt + "</div>";
+      if(isOpen){
+        html += "<div class=\"g-title\">" + info.title + "</div>";
+        html += "<div class=\"g-desc\">" + ENDINGS_DESC[k] + "</div>";
+      } else {
+        html += "<div class=\"g-title\">？？？</div>";
+        html += "<div class=\"g-lock\">尚未解锁的结局</div>";
+      }
+      card.innerHTML = html;
+      grid.appendChild(card);
+    });
+    $("galleryCount").textContent = "已解锁 " + count + " / 6";
+  }
+
+  /* ---------- 设置 ---------- */
+  function syncSettings(){
+    var segSpeed = $("segSpeed").querySelectorAll("button");
+    segSpeed.forEach(function(b){ b.classList.toggle("on", parseInt(b.dataset.v,10) === settings.speed); });
+    var segSfx = $("segSfx").querySelectorAll("button");
+    segSfx.forEach(function(b){ b.classList.toggle("on", parseInt(b.dataset.v,10) === (settings.sfx?1:0)); });
+    var segAff = $("segAff").querySelectorAll("button");
+    segAff.forEach(function(b){ b.classList.toggle("on", parseInt(b.dataset.v,10) === (settings.showAff?1:0)); });
+  }
+
+  function newGame(){
+    initAudio();
+    state = {aff:0, flags:{}, scene:"p01"};
+    saveState();
+    showView("gameLay");
+    go("p01");
+  }
+
+  function continueGame(){
+    var saved = loadState();
+    if(!saved){ newGame(); return; }
+    if(!saved.scene || !sceneMap[saved.scene]){ newGame(); return; }
+    initAudio();
+    state = saved;
+    showView("gameLay");
+    go(saved.scene);
+  }
+
+  /* ---------- 事件绑定 ---------- */
+  $("btnNew").addEventListener("click", newGame);
+  $("btnContinue").addEventListener("click", continueGame);
+  $("btnGallery").addEventListener("click", function(){ renderGallery(); showView("viewGallery"); });
+  $("btnAbout").addEventListener("click", function(){ showView("viewAbout"); });
+  $("galleryBack").addEventListener("click", function(){ showView("viewTitle"); });
+  $("aboutBack").addEventListener("click", function(){ showView("viewTitle"); });
+  $("endGallery").addEventListener("click", function(){ renderGallery(); showView("viewGallery"); });
+  $("endTitle2").addEventListener("click", function(){ showView("viewTitle"); });
+  $("btnTitle").addEventListener("click", function(){ showView("viewTitle"); });
+  $("btnSettings").addEventListener("click", function(){ syncSettings(); $("settingsModal").classList.add("show"); });
+  $("settingsClose").addEventListener("click", function(){ $("settingsModal").classList.remove("show"); });
+  $("settingsModal").addEventListener("click", function(ev){ if(ev.target === this) this.classList.remove("show"); });
+
+  $("segSpeed").addEventListener("click", function(ev){
+    var b = ev.target.closest("button"); if(!b) return;
+    settings.speed = parseInt(b.dataset.v,10); saveSettings(); syncSettings();
+  });
+  $("segSfx").addEventListener("click", function(ev){
+    var b = ev.target.closest("button"); if(!b) return;
+    settings.sfx = b.dataset.v === "1"; saveSettings(); syncSettings();
+  });
+  $("segAff").addEventListener("click", function(ev){
+    var b = ev.target.closest("button"); if(!b) return;
+    settings.showAff = b.dataset.v === "1"; saveSettings(); syncSettings(); updateAffDisp();
+  });
+
+  $("textArea").addEventListener("click", advance);
+  document.addEventListener("keydown", function(ev){
+    if(ev.key === " " || ev.key === "Enter"){
+      var tag = ev.target && ev.target.tagName;
+      if(tag === "BUTTON") return;
+      ev.preventDefault();
+      advance();
+    }
+  });
+
+  // 章节卡点击跳过
+  $("chapterCard").addEventListener("click", function(){
+    if(this.classList.contains("show")){
+      if(this._timer){ clearTimeout(this._timer); this._timer = null; }
+      this.classList.remove("show");
+      if(currentScene && currentScene.next) go(currentScene.next);
+    }
+  });
+
+  /* ---------- 初始化 ---------- */
+  var st = loadSettings(); if(st) settings = st;
+  unlocked = loadUnlocked();
+  if(loadState()){ $("btnContinue").classList.remove("hidden"); }
+  syncSettings();
+  showView("viewTitle");
+})();
+</script>
+</body>
+</html>
