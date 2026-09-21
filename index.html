@@ -29,7 +29,7 @@
 
   /* ===== 标题页 ===== */
   #viewTitle{background:linear-gradient(180deg,#13101a 0%,#241826 45%,#3c2326 100%)}
-  #viewTitle .tbg{position:absolute;inset:0;background:url(assets/bg-rooftop.png) center 22%/cover;opacity:.5}
+  #viewTitle .tbg{position:absolute;inset:0;background:url(bg-rooftop.png) center 22%/cover;opacity:.5}
   #viewTitle .tbg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(13,15,22,.55),rgba(13,15,22,.15) 40%,rgba(13,15,22,.92) 100%)}
   .title-wrap{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px}
   .title-kicker{font-size:13px;letter-spacing:.5em;color:var(--accent-2);margin-bottom:18px;font-weight:500}
@@ -531,8 +531,8 @@ const ENDINGS_DESC = {
 
 /* ================= 游戏引擎 ================= */
 (function(){
-  const BG_IMAGES = {rooftop:"assets/bg-rooftop.png", library:"assets/bg-library.png", rain:"assets/bg-rain.png", festival:"assets/bg-festival.png", classroom:"assets/bg-classroom.png"};
-  const SPRITES = {youjun:"assets/youjun.png", xiaolong:"assets/xiaolong.png"};
+  const BG_IMAGES = {rooftop:"bg-rooftop.png", library:"bg-library.png", rain:"bg-rain.png", festival:"bg-festival.png", classroom:"bg-classroom.png"};
+  const SPRITES = {youjun:"youjun.png", xiaolong:"xiaolong.png"};
   const NAME_COLORS = {"游竣":"#f2a05c", "小龙":"#5aa9e6", "生物老师":"#8a8f9c", "物理老师":"#8a8f9c", "谭琳莉":"#d98fe8", "校医":"#6fc3a0", "疯马吉":"#e8b86f"};
   const SAVE_KEY = "summer_rooftop_save_v1";
   const END_KEY = "summer_rooftop_endings_v1";
